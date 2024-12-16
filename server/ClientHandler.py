@@ -71,6 +71,7 @@ class ClientHandler:
             if isinstance(obj, Auth):
                 if config.password == obj.password:
                     self.authorized = True
+                    self.id += obj.nickname
                     print(f"{self.id} Authorized")
                     _channels = {}
                     for channel in channels.keys():

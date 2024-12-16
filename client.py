@@ -9,7 +9,11 @@ import pyaudio
 import time
 import pickle
 
-print("VoiceSockets testing")
+print("VoiceSockets 1.0.0, progame1201")
+print(f"You will be connected to {config.ip}:{config.port}")
+print(f"Mute hotkey: {config.mute_hotkey}")
+print("NOTE: All nicknames are separated by the symbol -- from id (I was too lazy to separate nicknames from id)")
+nickname = input("Enter your nickname:")
 lock = threading.Lock()
 key = utils.load_key(config.key_path)
 muted = False
@@ -19,7 +23,7 @@ def mute():
     muted = not muted
     print(f"\n{"Muted" if muted else "Unmuted"}")
 
-keyboard.add_hotkey("shift+v", mute)
+keyboard.add_hotkey(config.mute_hotkey, mute)
 
 sock = socket.socket()
 audio = pyaudio.PyAudio()
@@ -32,7 +36,7 @@ stream = audio.open(
 )
 sock.connect((config.ip, config.port))
 users = {}
-utils.send(sock, utils.encrypt(Auth(config.password).serialize(), key))
+utils.send(sock, utils.encrypt(Auth(config.password, nickname).serialize(), key))
 print("Connected to server.")
 def receiver():
     global buffer
@@ -97,7 +101,7 @@ def handle_object(netobject):
             except:
                 pass
         utils.send(sock, utils.encrypt(pickle.dumps(Channel(channel)), key))
-        print(f"Connected to {channel}. Now you can talk with other idiots.")
+        print(f"Connected to {channel}. Now you can talk with other nerds.")
         threading.Thread(target=SVOdka).start()
         threading.Thread(target=sender).start()
         return
