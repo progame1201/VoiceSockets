@@ -102,7 +102,7 @@ def handle_object(netobject):
                 pass
         utils.send(sock, utils.encrypt(pickle.dumps(Channel(channel)), key))
         print(f"Connected to {channel}. Now you can talk with other nerds.")
-        threading.Thread(target=SVOdka).start()
+        threading.Thread(target=SVOdka, daemon=True).start()
         threading.Thread(target=sender).start()
         return
 
