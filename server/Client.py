@@ -24,8 +24,18 @@ class Client:
         self.key = utils.load_key(config.key_path)
         self.channel = None
         #users[self.id] = self.sock
-
+        threading.Thread(target=self.auth_timer, daemon=True).start()
         self.receiver()
+
+    def auth_timer(self):
+        t = 0
+        while t < 29:
+            time.sleep(1)
+            t += 1
+        if self.authorized and self.channel:
+            return
+        print("auth timeout")
+        self.disconnect()
 
     def disconnect(self):
         self.broadcast_to_channel(UserDisconnected(self.id))
@@ -54,27 +64,21 @@ class Client:
 
     def receiver(self):
         try:
-            errors = 0
             buffer = b""
             while True:
                 data = self.sock.recv(1024 * 1024)
                 if not data:
                     break
+
                 buffer += data
 
                 for some_data in buffer.split(b"OILOPAKETSTART!")[1:]:
-                    if errors >= config.errors_limit:
-                        print("Errors limit exceeded")
-                        self.disconnect()
-                        break
                     try:
                         paket = pickle.loads(utils.decrypt(some_data, self.key))
                         self.handle_object(paket)
                         buffer = buffer.replace(b"OILOPAKETSTART!" + some_data, b"")
                     except pickle.UnpicklingError:
-                        errors += 1
-                        print("UnpicklingError")
-                errors = 0
+                        print(f"UnpicklingError: {self.id}")
         except:
             print("R:D")
             self.disconnect()
