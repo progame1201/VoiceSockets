@@ -15,23 +15,21 @@ class Client:
     def __init__(self, sock, address):
         self.sock: socket.socket = sock
         self.address = address
+        self.key = utils.load_key(config.key_path)
+
         self.id = str(uuid.uuid4())
         self.authorized = False
+        self.channel = None
 
         self.cant_send = False
         self.cant_hear = False
 
-        self.key = utils.load_key(config.key_path)
-        self.channel = None
-        #users[self.id] = self.sock
         threading.Thread(target=self.auth_timer, daemon=True).start()
         self.receiver()
 
     def auth_timer(self):
-        t = 0
-        while t < 29:
+        for i in range(1, 30):
             time.sleep(1)
-            t += 1
         if self.authorized and self.channel:
             return
         print("auth timeout")
