@@ -35,7 +35,7 @@ def get_int(string):
         try:
             return int(input(string))
         except:
-            print("Введите число!")
+            print("Enter a number!")
 
 def send(sock, data):
     sock.send(b"OILOPAKETSTART!"+data)

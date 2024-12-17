@@ -8,8 +8,7 @@ sock.bind((config.ip, config.port))
 sock.listen(15)
 print("Server bound.")
 print("Commands:")
-print("mute - mute some person. mute <mode> <channel_name> <client_id>")
-print("Modes:\n1 - cant_hear\n2 - cant_send")
+print("mute - mute some person. mute <mode 1 - cant_hear, 2 - cant_send> <channel_name> <client_id>")
 def commands():
 
     while True:

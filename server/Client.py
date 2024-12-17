@@ -40,7 +40,7 @@ class Client:
         self.sock.close()
         if self.channel:
             if self.id in [client.id for client in channels[self.channel]]:
-                del channels[self.channel][self]
+                channels[self.channel].remove(self)
         print(f"User {self.id} disconnected")
 
     def broadcast_to_channel(self, netobject):
@@ -92,7 +92,7 @@ class Client:
             if isinstance(obj, Auth):
                 if config.password == obj.password:
                     self.authorized = True
-                    self.id = f"{self.id}--{obj.nickname}"
+                    self.id = f"{self.id}--{obj.nickname.strip().replace("-", "")[:30]}"
                     print(f"{self.id} Authorized")
                     _channels = {}
                     for channel in channels:

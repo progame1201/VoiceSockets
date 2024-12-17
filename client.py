@@ -4,40 +4,74 @@ import config
 import socket
 from API import *
 import utils
+from colorama import init, Fore
 import sys
 import pyaudio
 import time
+import os
 import pickle
+init(autoreset=True)
 
-print("VoiceSockets 1.0.0, progame1201")
+
+print(f"VoiceSockets 1.0.2, progame1201")
 print(f"You will be connected to {config.ip}:{config.port}")
 print(f"Mute hotkey: {config.mute_hotkey}")
-print("NOTE: All nicknames are separated by the symbol -- from id (I was too lazy to separate nicknames from id)")
-nickname = input("Enter your nickname:")
-lock = threading.Lock()
+
+if os.path.exists("nickname") and config.auto_load_last_nickname:
+    with open("nickname", "r") as file:
+        nickname = file.read().strip()
+    print(f"Auto loaded nickname: {nickname}")
+else:
+    nickname = input("Enter your nickname:").strip()
+    with open("nickname", "w") as file:
+        file.write(nickname)
+audio = pyaudio.PyAudio()
+micro_index = None
+
+if config.choose_micro_on_start:
+    print("Choose microphone")
+    for i in range(0, 1000):
+        try:
+            print(f"{i} - {audio.get_device_info_by_index(i)['name']}")
+        except:
+            break
+    micro_index = utils.get_int("Enter index: ")
+
 key = utils.load_key(config.key_path)
 muted = False
 
 def mute():
     global muted
     muted = not muted
-    print(f"\n{"Muted" if muted else "Unmuted"}")
+    print(f"\n{f"{Fore.RED}Muted" if muted else f"{Fore.GREEN}Unmuted"}")
 
 keyboard.add_hotkey(config.mute_hotkey, mute)
 
 sock = socket.socket()
-audio = pyaudio.PyAudio()
-stream = audio.open(
-    format=pyaudio.paInt16,
-    channels=1,
-    rate=22050,
-    input=True,
-    frames_per_buffer=1024,
-)
+
+if micro_index:
+    stream = audio.open(
+        format=pyaudio.paInt16,
+        input_device_index=micro_index,
+        channels=1,
+        rate=22050,
+        input=True,
+        frames_per_buffer=1024,
+    )
+else:
+    stream = audio.open(
+        format=pyaudio.paInt16,
+        channels=1,
+        rate=22050,
+        input=True,
+        frames_per_buffer=1024,
+    )
+
 sock.connect((config.ip, config.port))
 users = {}
+muted_users = []
 utils.send(sock, utils.encrypt(Auth(config.password, nickname).serialize(), key))
-print("Connected to server.")
+print(f"{Fore.GREEN}Connected to server.")
 def receiver():
     global buffer
     global uerrors
@@ -58,7 +92,7 @@ def receiver():
 
 def SVOdka():
     while True:
-        print(f"\rStatus: UnpicklingErrors count:{uerrors}, buffer size:{sys.getsizeof(buffer)}, users in channel:{len(users)+1}",end="")
+        print(f"\rStatus: UnpicklingErrors count:{uerrors}, buffer size:{sys.getsizeof(buffer)}, users in channel:{len(users)+1}",end=f"{" "*10}")
         time.sleep(1)
 
 
@@ -73,8 +107,7 @@ def handle_object(netobject):
         if netobject.id in users:
             return
 
-        print(f"\n{netobject.id} connected")
-
+        print(f"\n{Fore.GREEN}{netobject.id.split("--")[1]} connected")
         users[netobject.id] = audio.open(
             format=pyaudio.paInt16,
             channels=1,
@@ -85,7 +118,7 @@ def handle_object(netobject):
         return
 
     if isinstance(netobject, UserDisconnected):
-        print(f"\n{netobject.id} disconnected")
+        print(f"\n{Fore.RED}{netobject.id.split("--")[1]} disconnected")
         if netobject.id in users:
             del users[netobject.id]
             return
@@ -102,6 +135,7 @@ def handle_object(netobject):
                 pass
         utils.send(sock, utils.encrypt(pickle.dumps(Channel(channel)), key))
         print(f"Connected to {channel}. Now you can talk with other nerds.")
+        threading.Thread(target=commands).start()
         threading.Thread(target=SVOdka, daemon=True).start()
         threading.Thread(target=sender).start()
         return
@@ -119,4 +153,35 @@ def sender():
         encrypted_data = utils.encrypt(pickle.dumps(netobject), key)
         utils.send(sock, encrypted_data)
 
+def commands():
+
+    while True:
+        try:
+            command = input("").lower()
+            if command.startswith("mute"):
+                args = command.split(" ")[1:]
+                if args[0] == "list":
+                    for id in users:
+                        print(id)
+                    continue
+                if args[0] in list(users.keys()):
+                    muted_users.append(args[0])
+                    users.pop(args[0])
+            if command.startswith("unmute"):
+                args = command.split(" ")[1:]
+                if args[0] == "list":
+                    for id in muted_users:
+                        print(id)
+                    continue
+                if args[0] in muted_users:
+                    muted_users.remove(args[0])
+                    users[args[0]] = audio.open(
+                    format=pyaudio.paInt16,
+                    channels=1,
+                    rate=22050,
+                    output=True,
+                    frames_per_buffer=1024,
+                    )
+        except Exception as ex:
+            print(f"Error: {ex}")
 threading.Thread(target=receiver).start()
