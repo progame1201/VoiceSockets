@@ -43,7 +43,7 @@ muted = False
 def mute():
     global muted
     muted = not muted
-    print(f"\n{f"{Fore.RED}Muted" if muted else f"{Fore.GREEN}Unmuted"}")
+    #print(f"\n{f"{Fore.RED}Muted" if muted else f"{Fore.GREEN}Unmuted"}")
 
 keyboard.add_hotkey(config.mute_hotkey, mute)
 
@@ -72,6 +72,7 @@ users = {}
 muted_users = []
 utils.send(sock, utils.encrypt(Auth(config.password, nickname).serialize(), key))
 print(f"{Fore.GREEN}Connected to server.")
+
 def receiver():
     global buffer
     global uerrors
@@ -92,8 +93,8 @@ def receiver():
 
 def SVOdka():
     while True:
-        print(f"\rStatus: UnpicklingErrors count:{uerrors}, buffer size:{sys.getsizeof(buffer)}, users in channel:{len(users)+1}",end=f"{" "*10}")
-        time.sleep(1)
+        print(f"\rStatus: UnpicklingErrors count:{uerrors}, buffer size:{sys.getsizeof(buffer)}, users in channel:{len(users)+1}, muted: {"yes" if muted else "no"} [{config.mute_hotkey}]",end=f"{" "*10}")
+        time.sleep(3)
 
 
 def handle_object(netobject):
@@ -107,7 +108,7 @@ def handle_object(netobject):
         if netobject.id in users:
             return
 
-        print(f"\n{Fore.GREEN}{netobject.id.split("--")[1]} connected")
+        print(f"\r{Fore.GREEN}{netobject.id.split("--")[1]} connected{" "*60}")
         users[netobject.id] = audio.open(
             format=pyaudio.paInt16,
             channels=1,
@@ -118,7 +119,7 @@ def handle_object(netobject):
         return
 
     if isinstance(netobject, UserDisconnected):
-        print(f"\n{Fore.RED}{netobject.id.split("--")[1]} disconnected")
+        print(f"\r{Fore.RED}{netobject.id.split("--")[1]} disconnected{" "*60}")
         if netobject.id in users:
             del users[netobject.id]
             return
