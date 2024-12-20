@@ -107,6 +107,13 @@ class Client:
                     self.disconnect()
                     print("A1:D")
                 if obj.channel in channels:
+                    if self.channel is not None:
+                        if self.id in [client.id for client in channels[self.channel]]:
+                            channels[self.channel].remove(self)
+                            self.broadcast_to_channel(UserDisconnected(self.id))
+
+                            for user_id in [client.id for client in channels[self.channel]]:
+                                utils.send(self.sock, utils.encrypt(UserDisconnected(user_id).serialize(), self.key))
                     self.channel = obj.channel
 
                     for client in channels[self.channel]:

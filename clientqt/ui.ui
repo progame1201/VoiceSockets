@@ -45,7 +45,7 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>240</y>
+      <y>230</y>
       <width>311</width>
       <height>181</height>
      </rect>
@@ -165,7 +165,7 @@
       <x>0</x>
       <y>230</y>
       <width>311</width>
-      <height>191</height>
+      <height>181</height>
      </rect>
     </property>
     <widget class="QLabel" name="statuslabel">
@@ -192,6 +192,29 @@
      </property>
      <property name="text">
       <string>mute selected user</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="channel_selecter">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>90</y>
+       <width>291</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>70</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Channel</string>
      </property>
     </widget>
    </widget>

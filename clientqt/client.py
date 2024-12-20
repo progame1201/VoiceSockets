@@ -51,7 +51,7 @@ def sender(micro):
 class receiver(QObject):
     user_connected = pyqtSignal(str)
     user_disconnected = pyqtSignal(str)
-    set_channel = pyqtSignal(dict)
+    set_channel = pyqtSignal(list)
     mute_btn_upd = pyqtSignal()
     update_status = pyqtSignal()
     def __init__(self):
@@ -118,7 +118,7 @@ class receiver(QObject):
                 return
 
         if isinstance(netobject, Channels):
-            self.set_channel.emit(netobject.channels)
+            self.set_channel.emit([f"{channel} [{netobject.channels[channel]} users]" for channel in netobject.channels])
             while self.channel is None:
                 time.sleep(0.1)
             utils.send(sock, utils.encrypt(pickle.dumps(Channel(self.channel)), key))
@@ -137,6 +137,7 @@ class App(QMainWindow):
         self.channel_list: QComboBox
         self.mute_button: QPushButton
         self.mute_selected:QPushButton
+        self.channel_selecter:QComboBox
         self.micro: QComboBox
         self.nickname_input: QLineEdit
         self.save: QPushButton
@@ -147,6 +148,7 @@ class App(QMainWindow):
         self.on_voice_chat.hide()
         self.channel_selct.hide()
         self.channel_list.addItem("Choose")
+        self.channel_selecter.addItem("Choose")
 
         if os.path.exists("nickname") and config.auto_load_last_nickname:
             with open("nickname", "r") as file:
@@ -179,11 +181,17 @@ class App(QMainWindow):
         self.thread.started.connect(self.worker.receiver)
 
         self.mute_button.clicked.connect(self.mute)
+        self.channel_selecter.currentTextChanged.connect(self.channel_selecter_handler)
         self.micro.currentTextChanged.connect(self.select_micro)
         self.save.clicked.connect(self.auth)
         self.mute_selected.clicked.connect(self.mute_selected_user)
         self.users.itemClicked.connect(self.on_item_clicked)
         self.channel_list.currentTextChanged.connect(self.select_channel)
+
+    def channel_selecter_handler(self, channel):
+        if channel == "Choose":
+            return
+        utils.send(sock, utils.encrypt(pickle.dumps(Channel(channel)), key))
 
     def auth(self):
         with open("nickname", "w") as file:
@@ -204,6 +212,7 @@ class App(QMainWindow):
 
     def show_channels(self, channels):
         for channel in channels:
+            self.channel_selecter.addItem(channel)
             self.channel_list.addItem(channel)
         self.channel_selct.show()
 
