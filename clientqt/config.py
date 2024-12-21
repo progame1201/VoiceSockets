@@ -4,3 +4,4 @@ key_path = "key-ed9463ee"
 password = "sigmo-password"
 mute_hotkey = "shift+v"
 auto_load_last_nickname = True
+db_limit = -100

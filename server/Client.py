@@ -122,5 +122,7 @@ class Client:
                     channels[obj.channel].append(self)
                     self.broadcast_to_channel(UserConnected(self.id))
                     print(f"User {self.id} joined channel {obj.channel}")
+                else:
+                    print(f"oblom {obj.channel}")
         except:
             self.disconnect()

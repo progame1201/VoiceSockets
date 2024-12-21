@@ -12,6 +12,7 @@ import os
 import sys
 from API import *
 import pickle
+import numpy as np
 
 muted = False
 audio = pyaudio.PyAudio()
@@ -19,6 +20,12 @@ key = utils.load_key(config.key_path)
 users = {}
 muted_users = []
 
+def get_db(data):
+    reference = 32768
+    rms = np.sqrt(np.mean(np.square(data/reference)))
+    if rms == 0:
+        return -float('inf')
+    return 20 * np.log10(rms**2)
 
 def sender(micro):
     global muted
@@ -44,6 +51,8 @@ def sender(micro):
             time.sleep(0.1)
             continue
         data = stream.read(1024)
+        if get_db(np.frombuffer(data, dtype=np.int16)) < config.db_limit:
+             continue
         netobject = Message(data)
         encrypted_data = utils.encrypt(pickle.dumps(netobject), key)
         utils.send(sock, encrypted_data)
@@ -121,7 +130,8 @@ class receiver(QObject):
             self.set_channel.emit([f"{channel} [{netobject.channels[channel]} users]" for channel in netobject.channels])
             while self.channel is None:
                 time.sleep(0.1)
-            utils.send(sock, utils.encrypt(pickle.dumps(Channel(self.channel)), key))
+
+            utils.send(sock, utils.encrypt(Channel(self.channel).serialize(), key))
             print(f"Connected to {self.channel}. Now you can talk with other nerds.")
             threading.Thread(target=lambda:sender(self.micro)).start()
             return
@@ -163,7 +173,7 @@ class App(QMainWindow):
                 mircos[i] = audio.get_device_info_by_index(i)['name']
             except:
                 break
-        self.micro.addItem("Default", "default")
+        self.micro.addItem("Default")
         for index in mircos:
             self.micro.addItem(mircos[index], index)
 
@@ -212,7 +222,7 @@ class App(QMainWindow):
 
     def show_channels(self, channels):
         for channel in channels:
-            self.channel_selecter.addItem(channel)
+            self.channel_selecter.addItem(channel.split(" ")[0])
             self.channel_list.addItem(channel)
         self.channel_selct.show()
 
@@ -241,7 +251,8 @@ class App(QMainWindow):
     def select_channel(self):
         if self.channel_list.currentText() == "Choose":
             return
-        self.worker.channel = self.channel_list.currentText()
+        print(self.channel_list.currentText())
+        self.worker.channel = self.channel_list.currentText().split(" ")[0]
         self.channel_selct.hide()
         self.on_voice_chat.show()
 
@@ -249,7 +260,7 @@ class App(QMainWindow):
         self.users.addItem(id)
 
     def select_micro(self, index):
-        if index == "default":
+        if index == "Default":
             return
         self.worker.micro = index
 
