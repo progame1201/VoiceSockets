@@ -1,5 +1,4 @@
 import time
-
 import config
 import socket
 import pickle
@@ -32,16 +31,15 @@ class Client:
             time.sleep(1)
         if self.authorized and self.channel:
             return
-        print("auth timeout")
-        self.disconnect()
+        self.disconnect("auth timeout")
 
-    def disconnect(self):
+    def disconnect(self, reason="default"):
         self.broadcast_to_channel(UserDisconnected(self.id))
         self.sock.close()
         if self.channel:
             if self.id in [client.id for client in channels[self.channel]]:
                 channels[self.channel].remove(self)
-        print(f"User {self.id} disconnected")
+        utils.log(f"User {self.id} disconnected. Reason: {reason}")
 
     def broadcast_to_channel(self, netobject):
         if not self.channel:
@@ -76,53 +74,52 @@ class Client:
                         self.handle_object(paket)
                         buffer = buffer.replace(b"OILOPAKETSTART!" + some_data, b"")
                     except pickle.UnpicklingError:
-                        print(f"UnpicklingError: {self.id}")
-        except:
-            print("R:D")
-            self.disconnect()
+                        utils.log(f"UnpicklingError: {self.id}")
+        except socket.error as e:
+            if e.errno == 10053:
+                return
+        except Exception as ex:
+            self.disconnect(f"receiver() error {ex}")
 
     def handle_object(self, obj: NetObject):
         try:
             if isinstance(obj, Message):
                 if not self.authorized or not self.channel:
-                    print("M:D")
-                    self.disconnect()
+                    self.disconnect("handle Message not authorized")
                 obj.send_from = self.id
                 self.broadcast_to_channel(obj)
             if isinstance(obj, Auth):
                 if config.password == obj.password:
                     self.authorized = True
                     self.id = f"{self.id}--{obj.nickname.strip().replace("-", "")[:30]}"
-                    print(f"{self.id} Authorized")
+                    utils.log(f"{self.id} Authorized")
                     _channels = {}
                     for channel in channels:
                         _channels[channel] = len(channels[channel])
                     utils.send(self.sock, utils.encrypt(Channels(_channels).serialize(), self.key))
                 else:
-                    print("A:D")
-                    self.disconnect()
+                    self.disconnect("handle Auth Password incorrect")
 
             if isinstance(obj, Channel):
                 if not self.authorized:
-                    self.disconnect()
-                    print("A1:D")
-                if obj.channel in channels:
-                    if self.channel is not None:
-                        if self.id in [client.id for client in channels[self.channel]]:
-                            channels[self.channel].remove(self)
-                            self.broadcast_to_channel(UserDisconnected(self.id))
+                    self.disconnect("handle Channel not authorized")
+                if obj.channel not in channels:
+                    self.disconnect("handle Channel received channel doesn't exists")
 
-                            for user_id in [client.id for client in channels[self.channel]]:
-                                utils.send(self.sock, utils.encrypt(UserDisconnected(user_id).serialize(), self.key))
-                    self.channel = obj.channel
+                if self.channel is not None:
+                    if self.id in [client.id for client in channels[self.channel]]:
+                        channels[self.channel].remove(self)
+                        self.broadcast_to_channel(UserDisconnected(self.id))
 
-                    for client in channels[self.channel]:
-                        utils.send(self.sock, utils.encrypt(UserConnected(client.id).serialize(), self.key))
+                        for user_id in [client.id for client in channels[self.channel]]:
+                            utils.send(self.sock, utils.encrypt(UserDisconnected(user_id).serialize(), self.key))
+                self.channel = obj.channel
 
-                    channels[obj.channel].append(self)
-                    self.broadcast_to_channel(UserConnected(self.id))
-                    print(f"User {self.id} joined channel {obj.channel}")
-                else:
-                    print(f"oblom {obj.channel}")
+                for client in channels[self.channel]:
+                    utils.send(self.sock, utils.encrypt(UserConnected(client.id).serialize(), self.key))
+
+                channels[obj.channel].append(self)
+                self.broadcast_to_channel(UserConnected(self.id))
+                utils.log(f"User {self.id} joined channel {obj.channel}")
         except:
             self.disconnect()
