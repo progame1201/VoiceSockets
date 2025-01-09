@@ -1,7 +1,7 @@
-ip = "192.168.0.104"
-port = 43120
-key_path = "key-ed9463ee"
-password = "sigmo-password"
-mute_hotkey = "shift+v"
-choose_micro_on_start = False
-auto_load_last_nickname = True
+IP = "127.0.0.1"
+PORT = 43120
+KEY_PATH = "path_to_key"
+PASSWORD = "sigmo-password"
+MUTE_HOTKEY = "shift+v"
+CHOOSE_MICRO_ON_START = False
+AUTO_LOAD_LAST_NICKNAME = True

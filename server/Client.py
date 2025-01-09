@@ -7,14 +7,14 @@ import threading
 from API import *
 import utils
 
-channels = {"channel1": [], "channel2": []}  # channel:client
+channels = config.CHANNELS  # channel:client
 
 
 class Client:
     def __init__(self, sock, address):
         self.sock: socket.socket = sock
         self.address = address
-        self.key = utils.load_key(config.key_path)
+        self.key = utils.load_key(config.KEY_PATH)
 
         self.id = str(uuid.uuid4())
         self.authorized = False
@@ -89,7 +89,7 @@ class Client:
                 obj.send_from = self.id
                 self.broadcast_to_channel(obj)
             if isinstance(obj, Auth):
-                if config.password == obj.password:
+                if config.PASSWORD == obj.password:
                     self.authorized = True
                     self.id = f"{self.id}--{obj.nickname.strip().replace("-", "")[:30]}"
                     utils.log(f"{self.id} Authorized")

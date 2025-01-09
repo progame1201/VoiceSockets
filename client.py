@@ -13,11 +13,11 @@ import pickle
 init(autoreset=True)
 
 
-print(f"VoiceSockets 1.0.2, progame1201")
-print(f"You will be connected to {config.ip}:{config.port}")
-print(f"Mute hotkey: {config.mute_hotkey}")
+print(f"VoiceSockets, 2025, progame1201")
+print(f"You will be connected to {config.IP}:{config.PORT}")
+print(f"Mute hotkey: {config.MUTE_HOTKEY}")
 
-if os.path.exists("nickname") and config.auto_load_last_nickname:
+if os.path.exists("nickname") and config.AUTO_LOAD_LAST_NICKNAME:
     with open("nickname", "r") as file:
         nickname = file.read().strip()
     print(f"Auto loaded nickname: {nickname}")
@@ -28,7 +28,7 @@ else:
 audio = pyaudio.PyAudio()
 micro_index = None
 
-if config.choose_micro_on_start:
+if config.CHOOSE_MICRO_ON_START:
     print("Choose microphone")
     for i in range(0, 1000):
         try:
@@ -37,7 +37,7 @@ if config.choose_micro_on_start:
             break
     micro_index = utils.get_int("Enter index: ")
 
-key = utils.load_key(config.key_path)
+key = utils.load_key(config.KEY_PATH)
 muted = False
 
 def mute():
@@ -45,7 +45,7 @@ def mute():
     muted = not muted
     #print(f"\n{f"{Fore.RED}Muted" if muted else f"{Fore.GREEN}Unmuted"}")
 
-keyboard.add_hotkey(config.mute_hotkey, mute)
+keyboard.add_hotkey(config.MUTE_HOTKEY, mute)
 
 sock = socket.socket()
 
@@ -67,10 +67,10 @@ else:
         frames_per_buffer=1024,
     )
 
-sock.connect((config.ip, config.port))
+sock.connect((config.IP, config.PORT))
 users = {}
 muted_users = []
-utils.send(sock, utils.encrypt(Auth(config.password, nickname).serialize(), key))
+utils.send(sock, utils.encrypt(Auth(config.PASSWORD, nickname).serialize(), key))
 print(f"{Fore.GREEN}Connected to server.")
 
 def receiver():
@@ -93,7 +93,7 @@ def receiver():
 
 def SVOdka():
     while True:
-        print(f"\rStatus: UnpicklingErrors count:{uerrors}, buffer size:{sys.getsizeof(buffer)}, users in channel:{len(users)+1}, muted: {"yes" if muted else "no"} [{config.mute_hotkey}]",end=f"{" "*10}")
+        print(f"\rStatus: UnpicklingErrors count:{uerrors}, buffer size:{sys.getsizeof(buffer)}, users in channel:{len(users)+1}, muted: {"yes" if muted else "no"} [{config.MUTE_HOTKEY}]", end=f"{" " * 10}")
         time.sleep(3)
 
 

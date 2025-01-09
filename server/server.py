@@ -3,9 +3,9 @@ import socket
 from utils import log
 import Client
 import threading
-
+print(f"VoiceSockets server, 2025, progame1201")
 sock = socket.socket()
-sock.bind((config.ip, config.port))
+sock.bind((config.IP, config.PORT))
 sock.listen(15)
 log("Server bound.")
 log("Commands:")

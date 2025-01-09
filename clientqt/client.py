@@ -16,7 +16,7 @@ import numpy as np
 
 muted = False
 audio = pyaudio.PyAudio()
-key = utils.load_key(config.key_path)
+key = utils.load_key(config.KEY_PATH)
 users = {}
 muted_users = []
 
@@ -52,9 +52,9 @@ def sender(micro):
             time.sleep(0.1)
             continue
         data = stream.read(1024)
-        if config.enable_volume_thresholding:
+        if config.ENABLE_VOLUME_THRESHOLDING:
             # I tried to make an algorithm here that won't send random sounds.
-            if get_db(np.frombuffer(data, dtype=np.int16)) < config.db_limit:
+            if get_db(np.frombuffer(data, dtype=np.int16)) < config.DB_LIMIT:
                 un_success += 1
             else:
                 un_success -= un_success / 2
@@ -82,7 +82,7 @@ class receiver(QObject):
         uerrors = 0
         buffer = b""
         threading.Thread(target=self.status_updater).start()
-        keyboard.add_hotkey(config.mute_hotkey, self.hotkey_mute)
+        keyboard.add_hotkey(config.MUTE_HOTKEY, self.hotkey_mute)
         while True:
             data = sock.recv(1024 * 1024)
             if not data:
@@ -168,7 +168,7 @@ class App(QMainWindow):
         self.channel_list.addItem("Choose")
         self.channel_selecter.addItem("Choose")
 
-        if os.path.exists("nickname") and config.auto_load_last_nickname:
+        if os.path.exists("nickname") and config.AUTO_LOAD_LAST_NICKNAME:
             with open("nickname", "r") as file:
                 nickname = file.read().strip()
             self.nickname_input.setText(nickname)
@@ -215,7 +215,7 @@ class App(QMainWindow):
         with open("nickname", "w") as file:
             file.write(self.nickname_input.text())
         self.start_settings_select.hide()
-        utils.send(sock, utils.encrypt(Auth(config.password, self.nickname_input.text()).serialize(), key))
+        utils.send(sock, utils.encrypt(Auth(config.PASSWORD, self.nickname_input.text()).serialize(), key))
 
     def mute(self):
         global muted
@@ -282,8 +282,9 @@ class App(QMainWindow):
             print(ex)
 
 if __name__ == "__main__":
+    print(f"VoiceSockets, 2025, progame1201")
     sock = socket.socket()
-    sock.connect((config.ip, config.port))
+    sock.connect((config.IP, config.PORT))
 
     app = QApplication(sys.argv)
     ex = App()

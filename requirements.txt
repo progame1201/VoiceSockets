@@ -1,0 +1,6 @@
+uuid~=1.30
+keyboard~=0.13.5
+PyAudio~=0.2.14
+numpy~=1.26.4
+PyQt6~=6.7.1
+colorama~=0.4.6

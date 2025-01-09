@@ -1,4 +1,5 @@
-ip = "192.168.0.104"
-port = 43120
-key_path = "key-ed9463ee"
-password = "sigmo-password"
+IP = "0.0.0.0"
+PORT = 43120
+KEY_PATH = "path_to_key"
+PASSWORD = "sigmo-password"
+CHANNELS = {"channel1": [], "channel2": []}
