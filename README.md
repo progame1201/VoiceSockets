@@ -1,4 +1,4 @@
-[logo](https://github.com/progame1201/VoiceSockets/blob/master/imgs/vcm.png)
+![logo](https://github.com/progame1201/VoiceSockets/blob/master/imgs/vcm.png)
 # VoiceSockets
 It is a voice chat for communicating with people, written entirely in python. encryption included.
 # What do I need to launch?
