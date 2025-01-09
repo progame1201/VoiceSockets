@@ -46,13 +46,21 @@ def sender(micro):
             input=True,
             frames_per_buffer=1024,
         )
+    un_success = 0
     while True:
         if muted:
             time.sleep(0.1)
             continue
         data = stream.read(1024)
-        if get_db(np.frombuffer(data, dtype=np.int16)) < config.db_limit:
-             continue
+        if config.enable_volume_thresholding:
+            # I tried to make an algorithm here that won't send random sounds.
+            if get_db(np.frombuffer(data, dtype=np.int16)) < config.db_limit:
+                un_success += 1
+            else:
+                un_success -= un_success / 2
+            if un_success > 7:
+                continue
+
         netobject = Message(data)
         encrypted_data = utils.encrypt(pickle.dumps(netobject), key)
         utils.send(sock, encrypted_data)
