@@ -1,3 +1,4 @@
+![GitHub all releases](https://img.shields.io/github/downloads/progame1201/VoiceSockets/total)
 ![logo](https://github.com/progame1201/VoiceSockets/blob/master/imgs/vcm.png)
 # VoiceSockets
 It is a voice chat for communicating with people, written entirely in python. encryption included.
