@@ -16,3 +16,6 @@ You can mute yourself (shift+v by default or button) as well as mute someone els
 There are channels you can join (by default, there are two).<br>
 At startup, you can set up a microphone and set a nickname.<br>
 There is a noise gate of the data being sent, which can be configured in the config<br>
+![img1](imgs/png2.PNG)
+![img1](imgs/png1.PNG)
+![img1](imgs/png3.PNG)
